@@ -31,11 +31,18 @@ module.exports = {
 		return module.exports.npm("npm", ["install", "-q", "."], stdio, callback);
 	},
 	npm: function(cmd, args, stdio, callback) {
+		var exe = cmd;
 		if (IS_WINDOWS) {
 			args.unshift("/c", cmd);
 			cmd = "cmd";
 		}
-		return exec(cmd, args, stdio, callback);
+		return exec(cmd, args, stdio, function(err) {
+			if(err && err.code===127 && exe!="npm") {
+				err.message = "Could not find " + exe + ". Please install with " +
+						"'npm install -g " + exe + "'."
+			}
+			callback && callback(err);
+		});
 	},
 	script: function(script, stdio, callback) {
 		var child;
